@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindful Chat | Mental Wellness</title>
+  <style>
+    :root {
+      --bg: #f3f7f5; --card: #ffffff; --green: #52796f; --green-dark: #355e55;
+      --mint: #e4f1ec; --text: #263832; --muted: #71817b; --border: #e2ebe6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      padding: 24px; font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text); background: linear-gradient(135deg, #eef6f2, #f8f5ef);
+    }
+    .app {
+      width: min(100%, 760px); height: min(850px, 92vh); min-height: 570px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+      box-shadow: 0 18px 55px #315b4b16; display: flex; flex-direction: column; overflow: hidden;
+    }
+    header { padding: 22px 26px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); }
+    .logo { width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center; background: var(--mint); font-size: 24px; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    .subtitle { color: var(--muted); font-size: 13px; }
+    .status { margin-left: auto; color: var(--green-dark); font-size: 12px; background: var(--mint); padding: 8px 11px; border-radius: 20px; }
+    .welcome { padding: 18px 26px 8px; }
+    .welcome h2 { font-size: 17px; margin: 0 0 6px; }
+    .welcome p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 26px; }
+    .suggestions button { border: 1px solid #d4e4dc; background: #f7fbf9; color: var(--green-dark); border-radius: 20px; padding: 9px 13px; cursor: pointer; font-size: 13px; }
+    .suggestions button:hover { background: var(--mint); }
+    #messages { flex: 1; overflow-y: auto; padding: 14px 26px 22px; display: flex; flex-direction: column; gap: 14px; }
+    .message { max-width: 82%; padding: 13px 16px; border-radius: 18px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .bot { align-self: flex-start; background: #f1f6f3; border-bottom-left-radius: 5px; }
+    .user { align-self: flex-end; background: var(--green); color: white; border-bottom-right-radius: 5px; }
+    .typing { color: var(--muted); font-style: italic; font-size: 13px; }
+    .input-area { padding: 16px 22px 12px; border-top: 1px solid var(--border); }
+    form { display: flex; gap: 10px; }
+    input { flex: 1; min-width: 0; border: 1px solid #d8e4de; border-radius: 15px; padding: 14px 16px; font-size: 14px; outline: none; }
+    input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #52796f18; }
+    .send { border: 0; background: var(--green); color: white; border-radius: 14px; padding: 0 20px; font-weight: 600; cursor: pointer; }
+    .send:hover { background: var(--green-dark); }
+    .disclaimer { text-align: center; color: var(--muted); font-size: 11px; line-height: 1.5; padding: 8px 20px 14px; }
+    @media (max-width: 520px) {
+      body { padding: 0; }
+      .app { height: 100vh; min-height: 100vh; border-radius: 0; }
+      header { padding: 18px; } .welcome, #messages { padding-left: 18px; padding-right: 18px; }
+      .suggestions { padding-left: 18px; padding-right: 18px; }
+      .status { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="logo">🌿</div>
+      <div>
+        <h1>Mindful Chat</h1>
+        <div class="subtitle">A gentle space to pause and reflect</div>
+      </div>
+      <div class="status">● Demo wellness chatbot</div>
+    </header>
+
+    <section class="welcome">
+      <h2>Hi there. How are you feeling today?</h2>
+      <p>You can share what’s on your mind, or choose a prompt below. There’s no need to find the perfect words.</p>
+    </section>
+
+    <div class="suggestions">
+      <button type="button" data-prompt="I feel stressed">I feel stressed</button>
+      <button type="button" data-prompt="I’m feeling anxious">I’m feeling anxious</button>
+      <button type="button" data-prompt="I need motivation">I need motivation</button>
+      <button type="button" data-prompt="Help me try a breathing exercise">Try a breathing exercise</button>
+    </div>
+
+    <section id="messages" aria-live="polite">
+      <div class="message bot">Welcome 💚 I’m here to listen. I can offer supportive reflections and simple wellness exercises. What would you like to talk about?</div>
+    </section>
+
+    <div class="input-area">
+      <form id="chat-form">
+        <input id="user-input" type="text" placeholder="Type how you’re feeling…" autocomplete="off" aria-label="Your message">
+        <button class="send" type="submit">Send ➤</button>
+      </form>
+    </div>
+    <div class="disclaimer">This demo is not a therapist or a crisis service and does not provide diagnosis or treatment.<br>If you may be in immediate danger, contact local emergency services or someone you trust.</div>
+  </main>
+
+  <script>
+    const messages = document.getElementById("messages");
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("user-input");
+
+    function addMessage(text, type) {
+      const el = document.createElement("div");
+      el.className = "message " + type;
+      el.textContent = text;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function getReply(text) {
+      const t = text.toLowerCase();
+
+      if (/(suicid|kill myself|hurt myself|self harm|end my life)/i.test(t)) {
+        return "I’m really sorry you’re going through this. Your safety matters. If you might act on these thoughts or are in immediate danger, please contact local emergency services now or go to the nearest emergency department. If possible, move near someone you trust and tell them directly that you need support. I’m not a crisis service, but I can stay with you while you reach out.";
+      }
+      if (/(stress|overwhelm|pressure|too much)/.test(t)) {
+        return "That sounds like a lot to carry. You don’t have to solve everything at once. Could you choose just one small thing to focus on right now? Try relaxing your shoulders and taking three slow, comfortable breaths. What feels like the biggest source of stress today?";
+      }
+      if (/(anxious|anxiety|nervous|worry|worried|panic)/.test(t)) {
+        return "Feeling anxious can be exhausting. Let’s gently bring your attention to the present: name 5 things you can see, 4 things you can feel, and 3 things you can hear. Take your time. Would you like to tell me what’s making you feel anxious?";
+      }
+      if (/(sad|lonely|down|cry|unhappy)/.test(t)) {
+        return "I’m sorry you’re feeling this way. You deserve kindness, including from yourself. You don’t need to force yourself to feel better immediately. Would it help to talk about what happened, or think of one comforting thing you could do for yourself?";
+      }
+      if (/(motivat|lazy|procrast|can't start|cannot start)/.test(t)) {
+        return "When starting feels difficult, make the first step very small—just 2 minutes. You could open your notebook, tidy one small area, or write one task. Starting tiny still counts. What is one thing you’d like to begin?";
+      }
+      if (/(breath|breathing|calm down)/.test(t)) {
+        return "Let’s try a gentle breathing pause. Sit comfortably and relax your shoulders. Breathe in softly for 4 counts, then breathe out slowly for 6 counts. Repeat 5 times without forcing your breath. Stop if you feel dizzy or uncomfortable. How do you feel now?";
+      }
+      if (/(thank|thanks)/.test(t)) {
+        return "You’re welcome 💚 I’m glad you reached out. Remember, small steps and asking for support are meaningful.";
+      }
+      if (/(hello|hi|hey)/.test(t)) {
+        return "Hello 💚 I’m glad you’re here. How are you feeling right now—physically and emotionally?";
+      }
+      return "Thank you for sharing that with me. It sounds important, and I’m listening. What part of this feels hardest for you right now? You can take your time.";
+    }
+
+    function sendMessage(text) {
+      const clean = text.trim();
+      if (!clean) return;
+      addMessage(clean, "user");
+      input.value = "";
+      const typing = document.createElement("div");
+      typing.className = "typing";
+      typing.textContent = "Mindful Chat is thinking…";
+      messages.appendChild(typing);
+      messages.scrollTop = messages.scrollHeight;
+      setTimeout(() => {
+        typing.remove();
+        addMessage(getReply(clean), "bot");
+      }, 550);
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      sendMessage(input.value);
+    });
+
+    document.querySelectorAll("[data-prompt]").forEach(button => {
+      button.addEventListener("click", () => sendMessage(button.dataset.prompt));
+    });
+  </script>
+</body>
+</html>
